@@ -21,7 +21,6 @@ public class App
         	OutputStream out = new FileOutputStream(path); 
 			AvroHelpper.parseJson(out);
 			System.out.println("完成avro序列化");
-			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
