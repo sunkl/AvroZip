@@ -3,6 +3,8 @@ package com.mo.avroTest.avro.schema;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.List;
 
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
@@ -13,50 +15,62 @@ import org.apache.avro.generic.GenericData.Array;
 import org.apache.avro.generic.GenericData.Record;
 import org.apache.avro.generic.GenericDatumWriter;
 
+import com.mo.avro.bean.Schema.IndexInfo;
+
 public class AvroHelpper {
-	public static Record createTable(String tableName,int colNum,String ownerDb,Schema schcema){
-		Record tableRecord = new GenericData.Record(schcema);		
-		tableRecord.put("tableName",tableName);
-		tableRecord.put("colNum", colNum);
-		tableRecord.put("ownerDb", ownerDb);
-		return tableRecord;
+	public static Record creadFieldRecord(com.mo.avro.bean.Schema.Field fieldData,Schema fieldMateData){
+		Record fieldRecord = new GenericData.Record(fieldMateData);	 
+		 fieldRecord.put("id", fieldData.getId().longValue());
+		 fieldRecord.put("name", fieldData.getName());
+		 fieldRecord.put("desc", fieldData.getDesc());
+		 fieldRecord.put("type", fieldData.getType());
+		return fieldRecord;
 	}
-	public static Array<Record> createTableRecords(Schema tableSchema){
-		Array<Record> tableRecords = new GenericData.Array<Record>(3, Schema.createArray(tableSchema));
-		tableRecords.add(createTable("table1", 2, "dbName", tableSchema));
-		tableRecords.add(createTable("table2", 3, "dbName", tableSchema));
-		tableRecords.add(createTable("table3", 4, "dbName", tableSchema));
-		return tableRecords;
+	public static Array<Record> createFieldRecords(List<com.mo.avro.bean.Schema.Field> fields,Schema fieldMateData){
+		Array<Record> fieldRecords = new GenericData.Array<Record>(fields.size(), Schema.createArray(fieldMateData));
+		for(com.mo.avro.bean.Schema.Field field:fields){
+			fieldRecords.add(creadFieldRecord(field, fieldMateData));
+		}
+		return fieldRecords;
 	}
 	
-	public static Record createColumn(int colId,String colName,String descript,Schema schcema){
-		Record columnRcoRecord = new GenericData.Record(schcema);		
-		columnRcoRecord.put("colId",colId);
-		columnRcoRecord.put("colName", colName);
-		columnRcoRecord.put("descript", descript); 
-		return columnRcoRecord;
+	public static Record createIndexInfoRecord(IndexInfo indexInfo,Schema indexInfoMateData){
+		Record indexInforRecord = new GenericData.Record(indexInfoMateData);
+        indexInforRecord.put("indexId", indexInfo.getIndexId().longValue());
+        indexInforRecord.put("indexName",indexInfo.getIndexName());
+        indexInforRecord.put("indexDesc", indexInfo.getIndexDesc());
+        indexInforRecord.put("indexType", indexInfo.getIndexType()); 
+        indexInforRecord.put("indexColumns", Arrays.asList(indexInfo.getIndexColumns())); 
+        
+		return indexInforRecord;
 	}
-	public static Array<Record> createColumnRecords(Schema colSchema){
-		Array<Record> tableRecords = new GenericData.Array<Record>(3, Schema.createArray(colSchema)); 
-		tableRecords.add(createColumn(1, "col1","this col1" ,colSchema));
-		tableRecords.add(createColumn(2, "col2","this col2", colSchema));
-		tableRecords.add(createColumn(3, "col3", "this col3",colSchema));
-		return tableRecords;
+	public static Array<Record> createIndexInfoRecords(List<IndexInfo> indexInfos ,Schema indexInfoMateData){
+		Array<Record> indexInfoRecords = new GenericData.Array<Record>(indexInfos.size(), Schema.createArray(indexInfoMateData)); 
+		for(IndexInfo indexInfo:indexInfos){
+			indexInfoRecords.add(createIndexInfoRecord(indexInfo, indexInfoMateData));
+		}
+		return indexInfoRecords;
 	}
-	public static Record createTableScriptRecord(Schema tableSchema,Schema columnSchema,Schema tableSrpritSchema){ 
-		Record tableScrpitRecord = new GenericData.Record(tableSrpritSchema);
-		Array<Record> columnRecords = createColumnRecords(columnSchema);
-		Array<Record> tableRecords = createTableRecords(tableSchema);
-		tableScrpitRecord.put("tables",tableRecords );
-		tableScrpitRecord.put("columns", columnRecords);
-		return tableScrpitRecord;
+	public static Record createTableScriptRecord(com.mo.avro.bean.Schema data,Schema indexInfoMateData,Schema fieldMateData,Schema schemaMateData){ 
+		Record schemaRecord = new GenericData.Record(schemaMateData);
+		Array<Record> indexInfoRecords= createIndexInfoRecords(data.getIndexLists(),indexInfoMateData);
+		Array<Record> fieldRecords = createFieldRecords(data.getFieldList(),fieldMateData);
+		schemaRecord.put("indexLists",indexInfoRecords );
+		schemaRecord.put("fieldList", fieldRecords);
+		schemaRecord.put("schemaId", data.getSchemaId());
+		schemaRecord.put("schemaName", data.getSchemaName());
+		schemaRecord.put("switchInfo", data.getSwitchInfo());
+		schemaRecord.put("desc", data.getDesc());
+		schemaRecord.put("ddlDesc", data.getDdlDesc()); 
+		return schemaRecord;
 	}
-	public static void parseJson(OutputStream out) throws Exception{
-		Schema tableSchema = Schema.parse(DBShema.buildTableSchame().toString()); 
-		Schema columnSchema = Schema.parse(DBShema.buildColumnSchema().toString()); 
-		Schema tableScriptSchema = Schema.parse(DBShema.buildTableScriptSchema().toString()); 
-		DataFileWriter<Record> writer = new DataFileWriter<GenericData.Record>(new GenericDatumWriter<Record>(tableScriptSchema)).create(tableScriptSchema, out);
-		writer.append(createTableScriptRecord(tableSchema, columnSchema, tableScriptSchema));
+	public static void parseJson(OutputStream out,com.mo.avro.bean.Schema date) throws Exception{
+		Schema fieldMateData = Schema.parse(DBShema.buildFieldMateData().toString()); 
+		Schema indexInfoMateData = Schema.parse(DBShema.buildIndexInfoMateData().toString()); 
+		Schema schemaMateData = Schema.parse(DBShema.buildSchemaMateData().toString()); 
+		DataFileWriter<Record> writer = new DataFileWriter<GenericData.Record>(new GenericDatumWriter<Record>(schemaMateData)).create(schemaMateData, out);
+		Record record = createTableScriptRecord(date,indexInfoMateData, fieldMateData, schemaMateData);
+		writer.append(record);
 		writer.close();
 	}
 	
