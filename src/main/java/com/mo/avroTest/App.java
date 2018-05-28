@@ -48,7 +48,7 @@ public class App
         try {
         	String path = "D://file.db";
         	OutputStream out = new FileOutputStream(path); 
-			AvroHelpper.parseJson(out,buildTestSchema());
+			AvroHelpper.seriToAvro(out,buildTestSchema());
 			System.out.println("完成avro序列化");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

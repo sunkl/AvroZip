@@ -13,12 +13,24 @@ import com.mo.avro.bean.Schema.IndexInfo;
 
 public class DBShema {
 	private final static ObjectMapper om = new ObjectMapper();
+	/**
+	 * 拼接普通字段
+	 * @param name 字段名称
+	 * @param type 字段类型
+	 * @return
+	 */
 	public static ObjectNode createFieldElement(String name,String type){
 		ObjectNode field = om.createObjectNode();
 		field.put("name", name);
 		field.put("type", type);
 		return field;
 	}
+	/**
+	 * 组装array类型的字段
+	 * @param name 字段名称
+	 * @param items array数据元的数据类型
+	 * @return
+	 */
 	public static ObjectNode createArrayFieldElement(String name,String items){
 		ObjectNode fieldNode = om.createObjectNode();
 		fieldNode.put("name", name);
@@ -28,6 +40,10 @@ public class DBShema {
 		fieldNode.put("type", type);
 		return fieldNode;
 	}
+	/**
+	 * 拼接indexInfo对象数据元
+	 * @return
+	 */
 	public static ObjectNode buildIndexInfoMateData(){
 		ObjectNode on = om.createObjectNode();
 		on.put("type", "record");
@@ -41,6 +57,10 @@ public class DBShema {
 		on.put("fields", fields);
 		return on;
 	}
+	/**
+	 * 拼接field对象数据元
+	 * @return
+	 */
 	public static ObjectNode buildFieldMateData(){
 		ObjectNode on = om.createObjectNode();
 		on.put("type", "record");
@@ -53,6 +73,12 @@ public class DBShema {
 		on.put("fields",fields);
 		return on;
 	}
+	/**
+	 * 组装复杂类型array类型的字段
+	 * @param name 字段名称
+	 * @param items array数据元的数据类型
+	 * @return
+	 */
 	public static ObjectNode buildArrayType(String name,ObjectNode items){
 		ObjectNode on = om.createObjectNode();
 		on.put("name", name);
@@ -62,7 +88,10 @@ public class DBShema {
 		on.put("type",typeNode);
 		return on;
 	}
-
+	/**
+	 * 拼接schema对象数据元（json）
+	 * @return
+	 */
 	public static String buildSchemaMateData(){
 		ObjectNode on = om.createObjectNode();
 		on.put("type", "record");
